@@ -1,0 +1,143 @@
+{% extends "base.html" %} {% block title %}Stats — {{ bike["name"] }}{% endblock
+%} {% block content %}
+<h1>📊 {{ bike["name"] }} — Stats</h1>
+
+<div class="page-actions">
+  <a href="/bikes/{{ bike['id'] }}/fuel">← Back to Fuel Logs</a>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+
+{% if kml_data == "[]" %}
+<div class="card">
+  <p>Not enough fuel entries yet. Add at least 2 to see charts.</p>
+</div>
+{% else %}
+
+<!-- km/L Chart -->
+<div class="card">
+  <h2 style="font-size: 16px; margin-bottom: 16px">⛽ km/L over time</h2>
+  <canvas id="kmlChart"></canvas>
+</div>
+
+<!-- Cost Chart -->
+{% if cost_data != "[]" %}
+<div class="card" style="margin-top: 16px">
+  <h2 style="font-size: 16px; margin-bottom: 16px">💰 Fuel cost per fill-up</h2>
+  <canvas id="costChart"></canvas>
+</div>
+{% endif %}
+
+<!-- Maintenance Timeline -->
+{% if maint_labels != "[]" %}
+<div class="card" style="margin-top: 16px">
+  <h2 style="font-size: 16px; margin-bottom: 16px">🔧 Maintenance history</h2>
+  <canvas id="maintChart"></canvas>
+</div>
+{% endif %} {% endif %}
+
+<script>
+  const kmlLabels  = {{ kml_labels|safe }};
+  const kmlData    = {{ kml_data|safe }};
+  const costLabels = {{ cost_labels|safe }};
+  const costData   = {{ cost_data|safe }};
+  const maintLabels = {{ maint_labels|safe }};
+  const maintTypes  = {{ maint_types|safe }};
+
+  // ── km/L line chart ──
+  if (kmlData.length) {
+    new Chart(document.getElementById('kmlChart'), {
+      type: 'line',
+      data: {
+        labels: kmlLabels,
+        datasets: [{
+          label: 'km/L',
+          data: kmlData,
+          borderColor: '#e05c00',
+          backgroundColor: 'rgba(224,92,0,0.1)',
+          borderWidth: 2,
+          pointBackgroundColor: '#e05c00',
+          pointRadius: 5,
+          tension: 0.3,
+          fill: true
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: false, title: { display: true, text: 'km/L' } },
+          x: { title: { display: true, text: 'Date' } }
+        }
+      }
+    });
+  }
+
+  // ── Cost bar chart ──
+  if (costData.length) {
+    new Chart(document.getElementById('costChart'), {
+      type: 'bar',
+      data: {
+        labels: costLabels,
+        datasets: [{
+          label: 'Cost (₱)',
+          data: costData,
+          backgroundColor: 'rgba(224,92,0,0.7)',
+          borderColor: '#e05c00',
+          borderWidth: 1,
+          borderRadius: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, title: { display: true, text: 'Cost (₱)' } },
+          x: { title: { display: true, text: 'Date' } }
+        }
+      }
+    });
+  }
+
+  // ── Maintenance timeline (horizontal bar) ──
+  if (maintTypes.length) {
+    const colors = maintTypes.map(t => {
+      if (t === 'Oil Change')       return 'rgba(224,92,0,0.7)';
+      if (t === 'Chain Adjustment') return 'rgba(29,158,117,0.7)';
+      if (t === 'Tire Replacement') return 'rgba(55,138,221,0.7)';
+      if (t === 'Brake Check')      return 'rgba(220,53,69,0.7)';
+      return 'rgba(136,135,128,0.7)';
+    });
+
+    new Chart(document.getElementById('maintChart'), {
+      type: 'bar',
+      data: {
+        labels: maintLabels,
+        datasets: [{
+          label: 'Maintenance',
+          data: maintTypes.map(() => 1),
+          backgroundColor: colors,
+          borderRadius: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        indexAxis: 'y',
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: ctx => maintTypes[ctx.dataIndex]
+            }
+          }
+        },
+        scales: {
+          x: { display: false },
+          y: { title: { display: true, text: 'Date' } }
+        }
+      }
+    });
+  }
+</script>
+
+{% endblock %}

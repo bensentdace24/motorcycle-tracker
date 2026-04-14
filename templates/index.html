@@ -1,0 +1,51 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Motorcycle Tracker</title>
+  </head>
+  <body>
+    {% extends "base.html" %} {% block title %}My Bikes{% endblock %} {% block
+    content %}
+    <h1>My Bikes</h1>
+
+    <div class="page-actions">
+      <a href="/bikes/add" class="btn-primary">+ Add Bike</a>
+    </div>
+
+    <ul class="bike-list">
+      {% for bike in bikes %}
+      <li class="bike-item">
+        <div>
+          <div class="bike-name">{{ bike["name"] }}</div>
+          <div class="bike-meta">
+            {{ bike["brand"] }} · {{ bike["engine_cc"] }}cc
+          </div>
+        </div>
+        <a href="/bikes/{{ bike['id'] }}/fuel">⛽ Fuel</a>
+        <a href="/bikes/{{ bike['id'] }}/stats">📊 Stats</a>
+        <a href="/bikes/{{ bike['id'] }}/edit">✏️ Edit</a>
+        <a href="/repair/ai/{{ bike['id'] }}">🤖 AI Guide</a>
+        <!-- add this -->
+        <a href="/bikes/{{ bike['id'] }}/maintenance">🔧 Maintenance</a>
+        <form
+          method="POST"
+          action="/bikes/{{ bike['id'] }}/delete"
+          style="display: inline"
+        >
+          <button
+            type="submit"
+            onclick="return confirm('Delete {{ bike['name'] }}?')"
+          >
+            🗑 Delete
+          </button>
+        </form>
+      </li>
+      {% else %}
+      <li class="card">
+        No bikes yet. <a href="/bikes/add">Add your first one!</a>
+      </li>
+      {% endfor %}
+    </ul>
+    {% endblock %}
+  </body>
+</html>

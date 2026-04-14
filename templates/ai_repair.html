@@ -1,0 +1,46 @@
+{% extends "base.html" %} {% block title %}AI Repair Guide — {{ bike["name"]
+}}{% endblock %} {% block content %}
+<h1>AI Repair Guide</h1>
+<p style="color: #888; font-size: 14px; margin-bottom: 20px">
+  Powered by Gemini AI — specific to your {{ bike["brand"] }} {{ bike["name"] }}
+</p>
+
+<!-- Ask a problem -->
+<div class="card" style="margin-bottom: 20px">
+  <h2 style="font-size: 16px; margin-bottom: 12px">
+    Describe what needs fixing
+  </h2>
+  <form method="POST" action="/repair/ai/{{ bike['id'] }}">
+    <div class="form-group">
+      <input
+        type="text"
+        name="problem"
+        placeholder="e.g. how to clean carburetor, chain is making noise, hard to start..."
+        required
+        style="font-size: 15px"
+      />
+    </div>
+    <button type="submit">Get Repair Guide</button>
+  </form>
+</div>
+
+<!-- Symptom checker -->
+<div class="card">
+  <h2 style="font-size: 16px; margin-bottom: 12px">Or describe a symptom</h2>
+  <form method="POST" action="/repair/ai/{{ bike['id'] }}/symptom">
+    <div class="form-group">
+      <input
+        type="text"
+        name="symptom"
+        placeholder="e.g. rough idle, weird noise from engine, losing power..."
+        required
+        style="font-size: 15px"
+      />
+    </div>
+    <button type="submit">Find Possible Causes</button>
+  </form>
+</div>
+
+<br />
+<a href="/">← Back</a>
+{% endblock %}

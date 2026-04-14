@@ -1,0 +1,212 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Segoe UI", sans-serif;
+  background: #f5f5f5;
+  color: #333;
+  padding: 24px;
+}
+
+h1 {
+  font-size: 24px;
+  margin-bottom: 16px;
+  color: #222;
+}
+
+a {
+  color: #e05c00;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* ── Nav bar ── */
+.navbar {
+  background: #1a1a1a;
+  padding: 12px 24px;
+  margin: -24px -24px 24px -24px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.navbar a {
+  color: #fff;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.navbar .brand {
+  color: #e05c00;
+  font-size: 18px;
+  font-weight: 700;
+  margin-right: auto;
+}
+
+/* ── Buttons ── */
+button,
+.btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.btn-primary {
+  background: #e05c00;
+  color: white;
+  display: inline-block;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+.btn-primary:hover {
+  background: #c45200;
+  text-decoration: none;
+}
+
+button[type="submit"] {
+  background: #e05c00;
+  color: white;
+}
+
+button[type="submit"]:hover {
+  background: #c45200;
+}
+
+/* delete buttons specifically */
+form[action*="delete"] button {
+  background: #dc3545;
+  padding: 4px 10px;
+  font-size: 12px;
+}
+
+form[action*="delete"] button:hover {
+  background: #b02a37;
+}
+
+/* ── Cards ── */
+.card {
+  background: white;
+  border-radius: 10px;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* ── Bike list ── */
+.bike-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.bike-item {
+  background: white;
+  border-radius: 10px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.bike-item .bike-name {
+  font-weight: 700;
+  font-size: 16px;
+  flex: 1;
+}
+
+.bike-item .bike-meta {
+  color: #888;
+  font-size: 13px;
+}
+
+/* ── Tables ── */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+th {
+  background: #1a1a1a;
+  color: white;
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 14px;
+}
+
+tr:last-child td {
+  border-bottom: none;
+}
+
+tr:hover td {
+  background: #fafafa;
+}
+
+/* ── Forms ── */
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #555;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #e05c00;
+}
+
+/* ── Flash messages ── */
+.flash {
+  background: #d4edda;
+  color: #155724;
+  padding: 10px 16px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+/* ── Page actions bar ── */
+.page-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}

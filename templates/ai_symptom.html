@@ -1,0 +1,83 @@
+{% extends "base.html" %} {% block title %}Symptom Check — {{ bike["name"] }}{%
+endblock %} {% block content %}
+<h1>Possible causes</h1>
+<p style="color: #888; font-size: 14px; margin-bottom: 6px">
+  Bike: {{ bike["brand"] }} {{ bike["name"] }}
+</p>
+<p style="font-size: 14px; margin-bottom: 20px">
+  Problem: <strong>{{ symptom }}</strong>
+</p>
+
+<div
+  style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px"
+>
+  {% for cause in causes %} {% if cause["severity"] == "high" %} {% set
+  border_color = "#dc3545" %} {% set badge_bg = "#fff0f0" %} {% set badge_color
+  = "#dc3545" %} {% set badge_text = "Fix now" %} {% elif cause["severity"] ==
+  "medium" %} {% set border_color = "#e05c00" %} {% set badge_bg = "#fff8f5" %}
+  {% set badge_color = "#e05c00" %} {% set badge_text = "Fix soon" %} {% else %}
+  {% set border_color = "#888" %} {% set badge_bg = "#f5f5f5" %} {% set
+  badge_color = "#888" %} {% set badge_text = "Monitor" %} {% endif %}
+
+  <div
+    style="background:white; border-radius:8px;
+      border-left:4px solid {{ border_color }};
+      padding:14px 16px; box-shadow:0 1px 3px rgba(0,0,0,0.06);
+      display:flex; align-items:center;
+      justify-content:space-between; gap:12px;"
+  >
+    <div>
+      <div style="font-weight: 700; font-size: 15px; margin-bottom: 6px">
+        {{ cause["issue"] }}
+      </div>
+      <span
+        style="background:{{ badge_bg }}; color:{{ badge_color }};
+          font-size:11px; font-weight:700; padding:2px 8px; border-radius:20px;"
+      >
+        {{ badge_text }}
+      </span>
+      {% if cause["can_diy"] == "yes" %}
+      <span
+        style="
+          background: #e8f5e9;
+          color: #1d9e75;
+          font-size: 11px;
+          font-weight: 700;
+          padding: 2px 8px;
+          border-radius: 20px;
+          margin-left: 6px;
+        "
+      >
+        DIY
+      </span>
+      {% else %}
+      <span
+        style="
+          background: #f5f5f5;
+          color: #888;
+          font-size: 11px;
+          font-weight: 700;
+          padding: 2px 8px;
+          border-radius: 20px;
+          margin-left: 6px;
+        "
+      >
+        See mechanic
+      </span>
+      {% endif %}
+    </div>
+
+    <a
+      href="/repair/ai/{{ bike['id'] }}?problem={{ cause['issue'] }}"
+      class="btn-primary"
+      style="white-space: nowrap; font-size: 13px"
+    >
+      How to fix →
+    </a>
+  </div>
+
+  {% endfor %}
+</div>
+
+<a href="/repair/ai/{{ bike['id'] }}">← Ask another question</a>
+{% endblock %}

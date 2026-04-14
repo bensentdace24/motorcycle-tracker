@@ -1,0 +1,33 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Add Bike</title>
+  </head>
+  <body>
+    {% extends "base.html" %} {% block title %}Add Bike{% endblock %} {% block
+    content %}
+    <h1>Add a Bike</h1>
+
+    <div class="card" style="max-width: 480px">
+      <form method="POST">
+        <div class="form-group">
+          <label>Name</label>
+          <input type="text" name="name" placeholder="Sniper 155" required />
+        </div>
+        <div class="form-group">
+          <label>Brand</label>
+          <input type="text" name="brand" placeholder="Yamaha" required />
+        </div>
+        <div class="form-group">
+          <label>Engine CC</label>
+          <input type="number" name="engine_cc" placeholder="155" required />
+        </div>
+        <button type="submit">Save Bike</button>
+      </form>
+    </div>
+
+    <br />
+    <a href="/">← Back</a>
+    {% endblock %}
+  </body>
+</html>

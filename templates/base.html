@@ -1,0 +1,23 @@
+<!doctype html>
+<html>
+  <head>
+    <title>{% block title %}Moto Tracker{% endblock %}</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+  </head>
+  <body>
+    <nav class="navbar">
+      <a href="/" class="brand">🏍️ MotoTracker</a>
+      <a href="/">My Bikes</a>
+      <a href="/bikes/add">+ Add Bike</a>
+      <a href="/repair">🔧 Repair Guide</a>
+    </nav>
+
+    {% with messages = get_flashed_messages() %} {% if messages %} {% for msg in
+    messages %}
+    <div class="flash">{{ msg }}</div>
+    {% endfor %} {% endif %} {% endwith %} {% block content %}{% endblock %}
+  </body>
+</html>
