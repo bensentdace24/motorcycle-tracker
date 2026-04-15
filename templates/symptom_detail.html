@@ -1,66 +1,289 @@
 {% extends "base.html" %} {% block title %}{{ symptom["label"] }}{% endblock %}
 {% block content %}
-<h1>{{ symptom["label"] }}</h1>
-<p style="color: #888; font-size: 14px; margin-bottom: 20px">
-  Here are the most likely causes. Start from the top.
-</p>
 
-<div style="display: flex; flex-direction: column; gap: 12px">
-  {% for cause in symptom["causes"] %} {% if cause["severity"] == "high" %} {%
-  set border_color = "#dc3545" %} {% set badge_bg = "#fff0f0" %} {% set
-  badge_color = "#dc3545" %} {% set badge_text = "Fix now" %} {% elif
-  cause["severity"] == "medium" %} {% set border_color = "#e05c00" %} {% set
-  badge_bg = "#fff8f5" %} {% set badge_color = "#e05c00" %} {% set badge_text =
-  "Fix soon" %} {% else %} {% set border_color = "#888" %} {% set badge_bg =
-  "#f5f5f5" %} {% set badge_color = "#888" %} {% set badge_text = "Monitor" %}
-  {% endif %}
+<style>
+  .symptom-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 1rem 1.5rem 2rem;
+  }
 
-  <div
-    style="
-      background: white;
-      border-radius: 8px;
-      border-left: 4px solid {{ border_color }};
-      padding: 14px 16px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-    "
-  >
-    <div>
-      <div style="font-weight: 700; font-size: 15px; margin-bottom: 4px">
-        {{ cause["issue"] }}
-      </div>
-      <span
-        style="
-          background: {{ badge_bg }};
-          color: {{ badge_color }};
-          font-size: 11px;
-          font-weight: 700;
-          padding: 2px 8px;
-          border-radius: 20px;
-        "
-        >{{ badge_text }}</span
-      >
-    </div>
+  .back-nav {
+    margin-bottom: 1.5rem;
+  }
 
-    {% if cause["guide"] %}
-    <a
-      href="/repair/guide/{{ cause['guide'] }}"
-      class="btn-primary"
-      style="white-space: nowrap; font-size: 13px"
-    >
-      How to fix →
-    </a>
-    {% else %}
-    <span style="font-size: 12px; color: #aaa">See a mechanic</span>
-    {% endif %}
+  .back-nav a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #5a7c8f;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: color 0.2s;
+  }
+
+  .back-nav a:hover {
+    color: #1e4a6b;
+  }
+
+  .symptom-header {
+    background: linear-gradient(135deg, #1e4a6b, #2b7a62);
+    border-radius: 28px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    color: white;
+  }
+
+  .symptom-header h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+
+  .symptom-header p {
+    opacity: 0.9;
+    font-size: 0.95rem;
+  }
+
+  .diagnosis-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .diagnosis-card {
+    background: white;
+    border-radius: 20px;
+    padding: 1.2rem;
+    border: 1px solid #eef2f8;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .diagnosis-card:hover {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    transform: translateY(-2px);
+  }
+
+  .diagnosis-card::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+  }
+
+  .diagnosis-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .diagnosis-info {
+    flex: 1;
+  }
+
+  .diagnosis-title {
+    font-weight: 800;
+    font-size: 1rem;
+    color: #1e4a6b;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .diagnosis-icon {
+    font-size: 1.2rem;
+  }
+
+  .priority-badge {
+    display: inline-block;
+    padding: 0.2rem 0.7rem;
+    border-radius: 20px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .priority-high {
+    background: #fee8e8;
+    color: #dc3545;
+  }
+
+  .priority-medium {
+    background: #fff3e0;
+    color: #e05c00;
+  }
+
+  .priority-low {
+    background: #f0f4fa;
+    color: #6b8ea3;
+  }
+
+  .btn-fix {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.2rem;
+    background: #1e4a6b;
+    color: white;
+    text-decoration: none;
+    border-radius: 40px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .btn-fix:hover {
+    background: #0f3b55;
+    transform: translateX(3px);
+  }
+
+  .btn-fix-high {
+    background: #dc3545;
+  }
+
+  .btn-fix-high:hover {
+    background: #c82333;
+  }
+
+  .btn-fix-medium {
+    background: #e05c00;
+  }
+
+  .btn-fix-medium:hover {
+    background: #c04e00;
+  }
+
+  .tips-card {
+    background: #fefaf8;
+    border: 1px solid #f0e4dc;
+    border-radius: 20px;
+    padding: 1.2rem;
+    margin-top: 1rem;
+  }
+
+  .tips-card h4 {
+    color: #e05c00;
+    font-size: 0.9rem;
+    margin-bottom: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .tips-card ul {
+    margin: 0;
+    padding-left: 1.2rem;
+  }
+
+  .tips-card li {
+    color: #5a7c8f;
+    font-size: 0.85rem;
+    margin-bottom: 0.4rem;
+  }
+
+  @media (max-width: 680px) {
+    .symptom-container {
+      padding: 1rem;
+    }
+    .symptom-header {
+      padding: 1.2rem;
+    }
+    .symptom-header h1 {
+      font-size: 1.3rem;
+    }
+    .diagnosis-content {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .btn-fix {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+</style>
+
+<div class="symptom-container">
+  <div class="back-nav">
+    <a href="/repair"> ← Back to Repair Guide </a>
   </div>
 
-  {% endfor %}
+  <div class="symptom-header">
+    <h1>
+      <span>
+        {% if "start" in symptom["label"]|lower %}🔑 {% elif "brake" in
+        symptom["label"]|lower %}🛑 {% elif "noise" in symptom["label"]|lower
+        %}🔊 {% elif "vibrat" in symptom["label"]|lower %}📳 {% elif "leak" in
+        symptom["label"]|lower %}💧 {% else %}🔧 {% endif %}
+      </span>
+      {{ symptom["label"] }}
+    </h1>
+    <p>Here are the most likely causes. Start from the top.</p>
+  </div>
+
+  <div class="diagnosis-list">
+    {% for cause in symptom["causes"] %}
+    <div
+      class="diagnosis-card"
+      style="border-left-color: {% if cause.severity == 'high' %}#dc3545{% elif cause.severity == 'medium' %}#e05c00{% else %}#9bb7c9{% endif %}; border-left-width: 4px; border-left-style: solid;"
+    >
+      <div class="diagnosis-content">
+        <div class="diagnosis-info">
+          <div class="diagnosis-title">
+            <span class="diagnosis-icon">
+              {% if "battery" in cause.issue|lower %}🔋 {% elif "spark" in
+              cause.issue|lower %}⚡ {% elif "fuel" in cause.issue|lower %}⛽ {%
+              elif "filter" in cause.issue|lower %}🌬️ {% elif "oil" in
+              cause.issue|lower %}🛢️ {% else %}🔧 {% endif %}
+            </span>
+            {{ cause.issue }}
+            <span
+              class="priority-badge {% if cause.severity == 'high' %}priority-high {% elif cause.severity == 'medium' %}priority-medium {% else %}priority-low{% endif %}"
+            >
+              {% if cause.severity == 'high' %}⚠️ URGENT {% elif cause.severity
+              == 'medium' %}📋 PLAN {% else %}👀 MONITOR{% endif %}
+            </span>
+          </div>
+        </div>
+
+        <a
+          href="/repair/ai/{{ bike_id }}/fix/{{ cause.issue }}"
+          class="btn-fix {% if cause.severity == 'high' %}btn-fix-high {% elif cause.severity == 'medium' %}btn-fix-medium {% else %}btn-fix{% endif %}"
+        >
+          🔧 How to fix →
+        </a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="tips-card">
+    <h4><span>💡</span> Pro Tips</h4>
+    <ul>
+      <li>
+        Start with the easiest/cheapest fix first (often the battery or spark
+        plug)
+      </li>
+      <li>Keep a maintenance log to track when issues started</li>
+      <li>If multiple issues appear, fix the URGENT ones first</li>
+      <li>When in doubt, consult a professional mechanic</li>
+      <li>Regular maintenance prevents most starting issues</li>
+    </ul>
+  </div>
 </div>
 
-<br />
-<a href="/repair">← Back to Repair Guide</a>
 {% endblock %}

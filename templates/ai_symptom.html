@@ -68,7 +68,7 @@ endblock %} {% block content %}
     </div>
 
     <a
-      href="/repair/ai/{{ bike['id'] }}?problem={{ cause['issue'] }}"
+      href="/repair/ai/{{ bike['id'] }}/fix/{{ cause['issue'] }}"
       class="btn-primary"
       style="white-space: nowrap; font-size: 13px"
     >

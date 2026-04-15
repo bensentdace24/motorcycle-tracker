@@ -1,46 +1,59 @@
 {% extends "base.html" %} {% block title %}Edit Fuel Entry{% endblock %} {%
 block content %}
-<h1>Edit Fuel Entry</h1>
 
-<div class="card" style="max-width: 480px">
-  <form method="POST">
-    <div class="form-group">
-      <label>Date</label>
-      <input type="date" name="date" value="{{ log['date'] }}" required />
-    </div>
-    <div class="form-group">
-      <label>Odometer (km)</label>
-      <input
-        type="number"
-        step="0.1"
-        name="odometer_km"
-        value="{{ log['odometer_km'] }}"
-        required
-      />
-    </div>
-    <div class="form-group">
-      <label>Liters filled</label>
-      <input
-        type="number"
-        step="0.01"
-        name="liters"
-        value="{{ log['liters'] }}"
-        required
-      />
-    </div>
-    <div class="form-group">
-      <label>Price (optional)</label>
-      <input
-        type="number"
-        step="0.01"
-        name="price"
-        value="{{ log['price'] or '' }}"
-      />
-    </div>
-    <button type="submit">Save Changes</button>
-  </form>
+<div class="container">
+  <h1>Edit Fuel Entry</h1>
+
+  <div class="card" style="max-width: 480px">
+    <form method="POST">
+      <div class="form-group">
+        <label>Date</label>
+        <input type="date" name="date" value="{{ log['date'] }}" required />
+      </div>
+
+      <div class="form-group">
+        <label>Current Odometer (km)</label>
+        <input
+          type="number"
+          step="0.1"
+          name="odometer_km"
+          value="{{ log['odometer_km'] }}"
+          required
+        />
+        <small style="color: #666; display: block; margin-top: 4px">
+          Current mileage at this fill-up
+        </small>
+      </div>
+
+      <div class="form-group">
+        <label>Liters filled</label>
+        <input
+          type="number"
+          step="0.01"
+          name="liters"
+          value="{{ log['liters'] }}"
+          required
+        />
+      </div>
+
+      <div class="form-group">
+        <label>Price (optional)</label>
+        <input
+          type="number"
+          step="0.01"
+          name="price"
+          value="{{ log['price'] or '' }}"
+        />
+      </div>
+
+      <button type="submit" class="btn btn-primary">Save Changes</button>
+    </form>
+  </div>
+
+  <br />
+  <a href="/bikes/{{ log['bike_id'] }}/fuel" class="btn btn-outline"
+    >← Back to Fuel Logs</a
+  >
 </div>
 
-<br />
-<a href="/bikes/{{ log['bike_id'] }}/fuel">← Back</a>
 {% endblock %}

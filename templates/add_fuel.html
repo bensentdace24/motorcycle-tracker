@@ -1,37 +1,209 @@
-<!doctype html>
-<html>
-  <head>
-    <title>Add Fuel Entry</title>
-  </head>
-  <body>
-    {% extends "base.html" %} {% block title %}Add Fuel Entry{% endblock %} {%
-    block content %}
+{% extends "base.html" %} {% block title %}Add Fuel Entry{% endblock %} {% block
+content %}
+
+<style>
+  .add-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 1rem 1.5rem 2rem;
+  }
+
+  .add-header {
+    margin-bottom: 2rem;
+  }
+
+  .add-header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #1e4a6b, #2b7a62);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .add-header h1::before {
+    content: "⛽";
+    font-size: 2rem;
+    background: none;
+    color: #2b7a62;
+  }
+
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #5a7c8f;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-top: 0.5rem;
+    transition: color 0.2s;
+  }
+
+  .back-link:hover {
+    color: #1e4a6b;
+  }
+
+  .form-card {
+    background: white;
+    border-radius: 28px;
+    padding: 2rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+    border: 1px solid #eef2f8;
+  }
+
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+
+  .form-group label {
+    display: block;
+    font-weight: 600;
+    color: #1e4a6b;
+    margin-bottom: 0.5rem;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .form-group input {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border: 2px solid #e2edf2;
+    border-radius: 16px;
+    font-size: 1rem;
+    font-family: inherit;
+    transition: all 0.2s;
+    background: #fafcff;
+  }
+
+  .form-group input:focus {
+    outline: none;
+    border-color: #2b7a62;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(43, 122, 98, 0.1);
+  }
+
+  .form-group input::placeholder {
+    color: #cbdde9;
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .btn-submit {
+    width: 100%;
+    padding: 0.9rem;
+    background: linear-gradient(135deg, #1e4a6b, #2b7a62);
+    color: white;
+    border: none;
+    border-radius: 40px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 0.5rem;
+    font-family: inherit;
+  }
+
+  .btn-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(30, 74, 107, 0.3);
+  }
+
+  .info-note {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: #f8fafc;
+    border-radius: 16px;
+    font-size: 0.8rem;
+    color: #6b8ea3;
+    text-align: center;
+    border: 1px solid #eef2f8;
+  }
+
+  .info-note span {
+    font-size: 1rem;
+    margin-right: 0.3rem;
+  }
+
+  @media (max-width: 560px) {
+    .add-container {
+      padding: 1rem;
+    }
+    .form-card {
+      padding: 1.5rem;
+    }
+    .form-row {
+      grid-template-columns: 1fr;
+      gap: 0;
+    }
+  }
+</style>
+
+<div class="add-container">
+  <div class="add-header">
     <h1>Add Fuel Entry</h1>
+    <a href="/bikes/{{ bike_id }}/fuel" class="back-link">
+      ← Back to Fuel Logs
+    </a>
+  </div>
 
-    <div class="card" style="max-width: 480px">
-      <form method="POST">
+  <div class="form-card">
+    <form method="POST">
+      <div class="form-group">
+        <label>📅 Date</label>
+        <input type="date" name="date" required />
+      </div>
+
+      <div class="form-row">
         <div class="form-group">
-          <label>Date</label>
-          <input type="date" name="date" required />
+          <label>🛣️ Odometer (km)</label>
+          <input
+            type="number"
+            step="0.1"
+            name="odometer_km"
+            placeholder="e.g., 12500.5"
+            required
+          />
         </div>
+
         <div class="form-group">
-          <label>Odometer (km)</label>
-          <input type="number" step="0.1" name="odometer_km" required />
+          <label>⛽ Liters filled</label>
+          <input
+            type="number"
+            step="0.01"
+            name="liters"
+            placeholder="e.g., 15.5"
+            required
+          />
         </div>
-        <div class="form-group">
-          <label>Liters filled</label>
-          <input type="number" step="0.01" name="liters" required />
-        </div>
-        <div class="form-group">
-          <label>Price (optional)</label>
-          <input type="number" step="0.01" name="price" />
-        </div>
-        <button type="submit">Save Entry</button>
-      </form>
+      </div>
+
+      <div class="form-group">
+        <label>💰 Price (optional)</label>
+        <input
+          type="number"
+          step="0.01"
+          name="price"
+          placeholder="e.g., 500.00"
+        />
+      </div>
+
+      <button type="submit" class="btn-submit">+ Save Fuel Entry</button>
+    </form>
+
+    <div class="info-note">
+      <span>💡</span> Tip: For accurate km/L calculations, always fill your tank
+      completely and record the exact odometer reading.
     </div>
+  </div>
+</div>
 
-    <br />
-    <a href="/bikes/{{ bike_id }}/fuel">← Back</a>
-    {% endblock %}
-  </body>
-</html>
+{% endblock %}

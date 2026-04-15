@@ -115,6 +115,7 @@ block content %}
     <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap">
       <select
         name="bike_id"
+        onchange="this.form.action='/repair/guide/{{ guide_key }}/log/' + this.value"
         style="
           padding: 8px 12px;
           border: 1px solid #ddd;
@@ -129,6 +130,10 @@ block content %}
       <button type="submit">Log this maintenance</button>
     </div>
   </form>
+</div>
+{% else %}
+<div class="card">
+  <p style="font-size: 14px; color: #888;">Add a bike to your garage to log this maintenance.</p>
 </div>
 {% endif %}
 

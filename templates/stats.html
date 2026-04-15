@@ -1,50 +1,260 @@
 {% extends "base.html" %} {% block title %}Stats — {{ bike["name"] }}{% endblock
 %} {% block content %}
-<h1>📊 {{ bike["name"] }} — Stats</h1>
 
-<div class="page-actions">
-  <a href="/bikes/{{ bike['id'] }}/fuel">← Back to Fuel Logs</a>
+<style>
+  .stats-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1rem 1.5rem 2rem;
+  }
+
+  /* Header */
+  .stats-header {
+    margin-bottom: 2rem;
+  }
+
+  .stats-header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #1e4a6b, #2b7a62);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    margin-bottom: 0.5rem;
+  }
+
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #5a7c8f;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: color 0.2s;
+  }
+
+  .back-link:hover {
+    color: #1e4a6b;
+  }
+
+  /* KPI Cards */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.2rem;
+    margin-bottom: 2rem;
+  }
+
+  .kpi-card {
+    background: white;
+    border-radius: 20px;
+    padding: 1.5rem 1rem;
+    text-align: center;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+    border: 1px solid #eef2f6;
+    transition:
+      transform 0.2s,
+      box-shadow 0.2s;
+  }
+
+  .kpi-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  }
+
+  .kpi-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .kpi-value {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #1e4a6b;
+    line-height: 1.2;
+  }
+
+  .kpi-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+    color: #7a9bb0;
+    margin-top: 0.4rem;
+  }
+
+  /* Chart Cards */
+  .chart-card {
+    background: white;
+    border-radius: 24px;
+    padding: 1.5rem;
+    margin-bottom: 1.8rem;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+    border: 1px solid #eef2f6;
+    transition: box-shadow 0.2s;
+  }
+
+  .chart-card:hover {
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
+  }
+
+  .chart-title {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #1e4a6b;
+    margin-bottom: 1.2rem;
+    padding-bottom: 0.8rem;
+    border-bottom: 2px solid #f0f4f8;
+  }
+
+  .chart-title span {
+    font-size: 1.4rem;
+  }
+
+  canvas {
+    max-height: 350px;
+    width: 100%;
+  }
+
+  /* Empty State */
+  .empty-state {
+    background: white;
+    border-radius: 24px;
+    padding: 3rem 2rem;
+    text-align: center;
+    border: 1px solid #eef2f6;
+  }
+
+  .empty-icon {
+    font-size: 3.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .empty-state p {
+    color: #7a9bb0;
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .btn-add {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1.5rem;
+    background: #1e4a6b;
+    color: white;
+    text-decoration: none;
+    border-radius: 40px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+  }
+
+  .btn-add:hover {
+    background: #0f3b55;
+    transform: translateY(-2px);
+  }
+
+  @media (max-width: 680px) {
+    .stats-container {
+      padding: 1rem;
+    }
+    .kpi-value {
+      font-size: 1.5rem;
+    }
+    .chart-card {
+      padding: 1rem;
+    }
+  }
+</style>
+
+<div class="stats-container">
+  <div class="stats-header">
+    <h1>📊 {{ bike["name"] }} — Performance Stats</h1>
+    <a href="/bikes/{{ bike['id'] }}/fuel" class="back-link">
+      ← Back to Fuel Logs
+    </a>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  {% if kml_data == "[]" %}
+  <div class="empty-state">
+    <div class="empty-icon">⛽</div>
+    <p>
+      Not enough fuel entries yet.<br />Add at least 2 fill-ups to see your
+      stats and charts.
+    </p>
+    <a href="/bikes/{{ bike['id'] }}/fuel/add" class="btn-add"
+      >+ Add First Fuel Entry</a
+    >
+  </div>
+  {% else %}
+
+  <!-- KPI Cards -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-icon">⛽</div>
+      <div class="kpi-value">{{ logs|length }}</div>
+      <div class="kpi-label">Total Fill-ups</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon">🛢️</div>
+      <div class="kpi-value">{{ "%.1f"|format(total_fuel) }} L</div>
+      <div class="kpi-label">Total Fuel</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon">📈</div>
+      <div class="kpi-value">
+        {{ "%.1f"|format(avg_kml) if avg_kml > 0 else "—" }} km/L
+      </div>
+      <div class="kpi-label">Avg. Efficiency</div>
+    </div>
+    {% if total_cost %}
+    <div class="kpi-card">
+      <div class="kpi-icon">💰</div>
+      <div class="kpi-value">₱ {{ "%.0f"|format(total_cost) }}</div>
+      <div class="kpi-label">Total Spent</div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- km/L Chart -->
+  <div class="chart-card">
+    <div class="chart-title"><span>⛽</span> Fuel Efficiency Trend</div>
+    <canvas id="kmlChart"></canvas>
+  </div>
+
+  <!-- Cost Chart -->
+  {% if cost_data != "[]" %}
+  <div class="chart-card">
+    <div class="chart-title"><span>💰</span> Cost per Fill-up</div>
+    <canvas id="costChart"></canvas>
+  </div>
+  {% endif %}
+
+  <!-- Maintenance Timeline -->
+  {% if maint_labels != "[]" %}
+  <div class="chart-card">
+    <div class="chart-title"><span>🔧</span> Maintenance History</div>
+    <canvas id="maintChart"></canvas>
+  </div>
+  {% endif %} {% endif %}
 </div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-
-{% if kml_data == "[]" %}
-<div class="card">
-  <p>Not enough fuel entries yet. Add at least 2 to see charts.</p>
-</div>
-{% else %}
-
-<!-- km/L Chart -->
-<div class="card">
-  <h2 style="font-size: 16px; margin-bottom: 16px">⛽ km/L over time</h2>
-  <canvas id="kmlChart"></canvas>
-</div>
-
-<!-- Cost Chart -->
-{% if cost_data != "[]" %}
-<div class="card" style="margin-top: 16px">
-  <h2 style="font-size: 16px; margin-bottom: 16px">💰 Fuel cost per fill-up</h2>
-  <canvas id="costChart"></canvas>
-</div>
-{% endif %}
-
-<!-- Maintenance Timeline -->
-{% if maint_labels != "[]" %}
-<div class="card" style="margin-top: 16px">
-  <h2 style="font-size: 16px; margin-bottom: 16px">🔧 Maintenance history</h2>
-  <canvas id="maintChart"></canvas>
-</div>
-{% endif %} {% endif %}
 
 <script>
-  const kmlLabels  = {{ kml_labels|safe }};
-  const kmlData    = {{ kml_data|safe }};
+  const kmlLabels = {{ kml_labels|safe }};
+  const kmlData = {{ kml_data|safe }};
   const costLabels = {{ cost_labels|safe }};
-  const costData   = {{ cost_data|safe }};
+  const costData = {{ cost_data|safe }};
   const maintLabels = {{ maint_labels|safe }};
-  const maintTypes  = {{ maint_types|safe }};
+  const maintTypes = {{ maint_types|safe }};
 
-  // ── km/L line chart ──
+  // km/L line chart
   if (kmlData.length) {
     new Chart(document.getElementById('kmlChart'), {
       type: 'line',
@@ -54,26 +264,46 @@
           label: 'km/L',
           data: kmlData,
           borderColor: '#e05c00',
-          backgroundColor: 'rgba(224,92,0,0.1)',
-          borderWidth: 2,
+          backgroundColor: 'rgba(224, 92, 0, 0.05)',
+          borderWidth: 3,
           pointBackgroundColor: '#e05c00',
-          pointRadius: 5,
+          pointBorderColor: 'white',
+          pointBorderWidth: 2,
+          pointRadius: 6,
+          pointHoverRadius: 8,
           tension: 0.3,
           fill: true
         }]
       },
       options: {
         responsive: true,
-        plugins: { legend: { display: false } },
+        maintainAspectRatio: true,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#1e4a6b',
+            titleColor: 'white',
+            bodyColor: '#e2edf2',
+            padding: 10,
+            cornerRadius: 8
+          }
+        },
         scales: {
-          y: { beginAtZero: false, title: { display: true, text: 'km/L' } },
-          x: { title: { display: true, text: 'Date' } }
+          y: {
+            beginAtZero: false,
+            title: { display: true, text: 'km/L', font: { weight: 'bold' } },
+            grid: { color: '#f0f4f8' }
+          },
+          x: {
+            title: { display: true, text: 'Date', font: { weight: 'bold' } },
+            grid: { display: false }
+          }
         }
       }
     });
   }
 
-  // ── Cost bar chart ──
+  // Cost bar chart
   if (costData.length) {
     new Chart(document.getElementById('costChart'), {
       type: 'bar',
@@ -82,31 +312,47 @@
         datasets: [{
           label: 'Cost (₱)',
           data: costData,
-          backgroundColor: 'rgba(224,92,0,0.7)',
-          borderColor: '#e05c00',
+          backgroundColor: 'rgba(30, 74, 107, 0.7)',
+          borderColor: '#1e4a6b',
           borderWidth: 1,
-          borderRadius: 4
+          borderRadius: 8,
+          hoverBackgroundColor: 'rgba(30, 74, 107, 0.9)'
         }]
       },
       options: {
         responsive: true,
-        plugins: { legend: { display: false } },
+        maintainAspectRatio: true,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => `₱ ${ctx.raw.toFixed(2)}`
+            }
+          }
+        },
         scales: {
-          y: { beginAtZero: true, title: { display: true, text: 'Cost (₱)' } },
-          x: { title: { display: true, text: 'Date' } }
+          y: {
+            beginAtZero: true,
+            title: { display: true, text: 'Cost (₱)', font: { weight: 'bold' } },
+            grid: { color: '#f0f4f8' }
+          },
+          x: {
+            title: { display: true, text: 'Date', font: { weight: 'bold' } },
+            grid: { display: false }
+          }
         }
       }
     });
   }
 
-  // ── Maintenance timeline (horizontal bar) ──
+  // Maintenance timeline
   if (maintTypes.length) {
     const colors = maintTypes.map(t => {
-      if (t === 'Oil Change')       return 'rgba(224,92,0,0.7)';
-      if (t === 'Chain Adjustment') return 'rgba(29,158,117,0.7)';
-      if (t === 'Tire Replacement') return 'rgba(55,138,221,0.7)';
-      if (t === 'Brake Check')      return 'rgba(220,53,69,0.7)';
-      return 'rgba(136,135,128,0.7)';
+      if (t === 'Oil Change') return 'rgba(224, 92, 0, 0.8)';
+      if (t === 'Chain Adjustment') return 'rgba(43, 122, 98, 0.8)';
+      if (t === 'Tire Replacement') return 'rgba(55, 138, 221, 0.8)';
+      if (t === 'Brake Check') return 'rgba(220, 53, 69, 0.8)';
+      return 'rgba(136, 135, 128, 0.8)';
     });
 
     new Chart(document.getElementById('maintChart'), {
@@ -117,23 +363,29 @@
           label: 'Maintenance',
           data: maintTypes.map(() => 1),
           backgroundColor: colors,
-          borderRadius: 4
+          borderRadius: 6,
+          barPercentage: 0.6
         }]
       },
       options: {
         responsive: true,
+        maintainAspectRatio: true,
         indexAxis: 'y',
         plugins: {
           legend: { display: false },
           tooltip: {
+            backgroundColor: '#1e4a6b',
             callbacks: {
-              label: ctx => maintTypes[ctx.dataIndex]
+              label: (ctx) => maintTypes[ctx.dataIndex]
             }
           }
         },
         scales: {
           x: { display: false },
-          y: { title: { display: true, text: 'Date' } }
+          y: {
+            title: { display: true, text: 'Date', font: { weight: 'bold' } },
+            grid: { display: false }
+          }
         }
       }
     });

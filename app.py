@@ -1,11 +1,8 @@
-import csv
-import io
-from ai_guide import get_repair_guide, get_symptom_causes
-from flask import Response
-from flask import Flask, request, redirect, url_for, render_template, flash
-from flask import Flask, request, redirect, url_for, render_template
+from flask import Flask, request, redirect, url_for, render_template, flash, Response
 from database import get_connection, init_db
 from repair_data import GUIDES, SYMPTOMS
+from ai_guide import get_repair_guide, get_symptom_causes
+
 app = Flask(__name__)
 app.secret_key = "moto-tracker-secret"
 app.jinja_env.globals['enumerate'] = enumerate
@@ -42,27 +39,28 @@ def add_bike():
 def fuel_logs(bike_id):
     conn = get_connection()
 
-    bike = conn.execute("SELECT * FROM bikes WHERE id = ?", (bike_id,)).fetchone()
+    bike = conn.execute(
+        "SELECT * FROM bikes WHERE id = ?", (bike_id,)
+    ).fetchone()
 
-    logs = conn.execute("SELECT * FROM fuel_logs WHERE bike_id = ? ORDER BY odometer_km ASC", (bike_id,)).fetchall()  
-
+    logs = conn.execute(
+        "SELECT * FROM fuel_logs WHERE bike_id = ? ORDER BY date DESC",
+        (bike_id,)
+    ).fetchall()
 
     conn.close()
-
-
-    #compute km/l for each log (needs previous reading)
 
     logs_with_efficiency = []
 
     for i, log in enumerate(logs):
         if i == 0:
-            kml = None # no previous reading to compare to
+            kml = None
         else:
             distance = log["odometer_km"] - logs[i - 1]["odometer_km"]
             kml = round(distance / log["liters"], 2) if log["liters"] > 0 else None
 
         logs_with_efficiency.append({
-            "id":          log["id"],
+            "id": log["id"],
             "date": log["date"],
             "odometer_km": log["odometer_km"],
             "liters": log["liters"],
@@ -70,30 +68,44 @@ def fuel_logs(bike_id):
             "kml": kml
         })
 
-    return render_template("fuel_logs.html", bike=bike, logs=logs_with_efficiency)
+    # ✅ COMPUTE TOTALS HERE (correct place)
+    total_fuel = sum(log["liters"] for log in logs_with_efficiency if log["liters"])
+
+    # Only include positive km/L values (greater than 0)
+    kml_values = [log["kml"] for log in logs_with_efficiency if log["kml"] and log["kml"] > 0]
+    avg_kml = round(sum(kml_values) / len(kml_values), 2) if kml_values else 0
+
+    return render_template(
+        "fuel_logs.html",
+        bike=bike,
+        logs=logs_with_efficiency,
+        total_fuel=total_fuel,
+        avg_kml=avg_kml
+    )
 
 
 @app.route("/bikes/<int:bike_id>/fuel/add", methods=["GET", "POST"])
-
 def add_fuel_log(bike_id):
     if request.method == "POST":
-        odometer = request.form["odometer_km"]
-        liters = request.form["liters"]
-        price = request.form["price"]
+        odometer = float(request.form["odometer_km"])
+        liters = float(request.form["liters"])
+        price = float(request.form["price"]) if request.form["price"] else None
         date = request.form["date"]
 
         conn = get_connection()
-        conn.execute("INSERT INTO fuel_logs (bike_id, odometer_km, liters, price, date) VALUES (?, ?, ?, ?, ?)"
-        ,(bike_id, odometer, liters, price, date)
+        conn.execute(
+            "INSERT INTO fuel_logs (bike_id, odometer_km, liters, price, date) VALUES (?, ?, ?, ?, ?)",
+            (bike_id, odometer, liters, price, date)
         )
         conn.commit()
         conn.close()
-        flash("Fuel log added!")  
 
+        flash("Fuel log added!")
+
+        # ✅ redirect ONLY
         return redirect(url_for("fuel_logs", bike_id=bike_id))
-    
-    return render_template("add_fuel.html", bike_id=bike_id)
 
+    return render_template("add_fuel.html", bike_id=bike_id)
 # ── Maintenance Logs ───────────────────────────────
 
 @app.route("/bikes/<int:bike_id>/maintenance")
@@ -189,17 +201,36 @@ def bike_stats(bike_id):
     cost_labels = []
     cost_data = []
 
+    # Calculate totals
+    total_fuel = 0
+    total_cost = 0
+    valid_kml_values = []
+
     for i, log in enumerate(logs):
+        # Add to totals
+        if log["liters"]:
+            total_fuel += log["liters"]
+        if log["price"]:
+            total_cost += log["price"]
+
+        # Calculate km/L for chart
         if i == 0:
             continue
         distance = log["odometer_km"] - logs[i - 1]["odometer_km"]
         kml = round(distance / log["liters"], 2) if log["liters"] > 0 else 0
         kml_labels.append(log["date"])
         kml_data.append(kml)
+        
+        # Collect valid kml for average (positive values only)
+        if kml > 0:
+            valid_kml_values.append(kml)
 
         if log["price"]:
             cost_labels.append(log["date"])
             cost_data.append(round(log["price"], 2))
+
+    # Calculate average km/L
+    avg_kml = round(sum(valid_kml_values) / len(valid_kml_values), 2) if valid_kml_values else 0
 
     # maintenance timeline data
     maint_labels = [m["date"] for m in maintenance]
@@ -208,6 +239,10 @@ def bike_stats(bike_id):
     return render_template(
         "stats.html",
         bike=bike,
+        logs=logs,  # Add this for the template to use
+        total_fuel=round(total_fuel, 1),  # Add this
+        total_cost=round(total_cost, 2),  # Add this (optional)
+        avg_kml=avg_kml,  # Add this
         kml_labels=json.dumps(kml_labels),
         kml_data=json.dumps(kml_data),
         cost_labels=json.dumps(cost_labels),
@@ -356,18 +391,21 @@ def export_maintenance(bike_id):
 # ── Repair Guide ────────────────────────────────────
 
 @app.route("/repair")
-def repair_home():
-    return render_template("repair_home.html", guides=GUIDES, symptoms=SYMPTOMS)
+@app.route("/repair/<int:bike_id>")
+def repair_home(bike_id=None):
+    conn = get_connection()
+    bikes = conn.execute("SELECT * FROM bikes").fetchall()
+    conn.close()
+    return render_template("repair_home.html", guides=GUIDES, symptoms=SYMPTOMS, bike_id=bike_id, bikes=bikes)
 
 
-@app.route("/repair/symptom/<symptom_key>")
-def symptom_detail(symptom_key):
+@app.route("/repair/symptom/<symptom_key>/<int:bike_id>")
+def symptom_detail(symptom_key, bike_id):
     symptom = SYMPTOMS.get(symptom_key)
     if not symptom:
         flash("Symptom not found.")
         return redirect(url_for("repair_home"))
-    return render_template("symptom_detail.html", symptom=symptom, symptom_key=symptom_key, guides=GUIDES)
-
+    return render_template("symptom_detail.html", symptom=symptom, symptom_key=symptom_key, bike_id=bike_id)
 
 @app.route("/repair/guide/<guide_key>")
 def guide_detail(guide_key):
@@ -446,6 +484,17 @@ def ai_log_repair(bike_id):
 
     flash(f"{title} logged to your maintenance record!")
     return redirect(url_for("index"))
+
+@app.route("/repair/ai/<int:bike_id>/fix/<problem>")
+def ai_fix(bike_id, problem):
+    conn = get_connection()
+    bike = conn.execute("SELECT * FROM bikes WHERE id = ?", (bike_id,)).fetchone()
+    conn.close()
+
+    bike_name = f"{bike['brand']} {bike['name']}"
+    guide = get_repair_guide(bike_name, problem)
+    return render_template("ai_guide.html", guide=guide, bike=bike, problem=problem)
+
 
 if __name__ == "__main__":
     init_db()

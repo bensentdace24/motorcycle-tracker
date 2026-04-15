@@ -1,73 +1,344 @@
 {% extends "base.html" %} {% block title %}Repair Guide{% endblock %} {% block
 content %}
-<h1>🔧 Bike Repair Guide</h1>
 
-<!-- Symptom Checker -->
-<div class="card" style="margin-bottom: 24px">
-  <h2 style="font-size: 18px; margin-bottom: 6px">Something feel wrong?</h2>
-  <p style="color: #888; font-size: 14px; margin-bottom: 16px">
-    Pick what you're experiencing and we'll show possible causes.
-  </p>
+<style>
+  .repair-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1rem 1.5rem 2rem;
+  }
 
-  <div style="display: flex; flex-direction: column; gap: 10px">
-    {% for key, symptom in symptoms.items() %}
-    <a
-      href="/repair/symptom/{{ key }}"
-      style="
-        display: block;
-        padding: 12px 16px;
-        background: #fff8f5;
-        border: 1px solid #f0ddd5;
-        border-left: 4px solid #e05c00;
-        border-radius: 6px;
-        color: #333;
-        font-size: 14px;
-        font-weight: 600;
-        text-decoration: none;
-      "
-    >
-      {{ symptom["label"] }}
+  .repair-header {
+    margin-bottom: 2rem;
+  }
+
+  .repair-header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #1e4a6b, #2b7a62);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .repair-header h1::before {
+    content: "🔧";
+    font-size: 2rem;
+    background: none;
+    color: #2b7a62;
+  }
+
+  .repair-subtitle {
+    color: #6b8ea3;
+    margin-top: 0.5rem;
+    font-size: 0.95rem;
+  }
+
+  /* Symptom Checker Card */
+  .symptom-card {
+    background: white;
+    border-radius: 28px;
+    padding: 1.8rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+    border: 1px solid #eef2f8;
+  }
+
+  .symptom-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #1e4a6b;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .symptom-desc {
+    color: #7a9bb0;
+    font-size: 0.85rem;
+    margin-bottom: 1.5rem;
+  }
+
+  /* Bike Selector */
+  .bike-selector {
+    background: #f8fafc;
+    padding: 1rem;
+    border-radius: 20px;
+    margin-bottom: 1.5rem;
+    border: 1px solid #eef2f8;
+  }
+
+  .bike-selector label {
+    font-weight: 600;
+    color: #1e4a6b;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+
+  .bike-selector select {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border: 2px solid #e2edf2;
+    border-radius: 14px;
+    font-size: 0.95rem;
+    font-family: inherit;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .bike-selector select:focus {
+    outline: none;
+    border-color: #2b7a62;
+  }
+
+  /* Symptom Grid */
+  .symptom-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+  }
+
+  .symptom-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.2rem;
+    background: #fefaf8;
+    border: 1px solid #f0e4dc;
+    border-left: 4px solid #e05c00;
+    border-radius: 16px;
+    text-decoration: none;
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+
+  .symptom-item:hover {
+    transform: translateX(5px);
+    background: #fff5f0;
+    border-color: #e05c00;
+    box-shadow: 0 4px 12px rgba(224, 92, 0, 0.1);
+  }
+
+  .symptom-icon {
+    font-size: 1.8rem;
+  }
+
+  .symptom-content {
+    flex: 1;
+  }
+
+  .symptom-label {
+    font-weight: 700;
+    color: #1e4a6b;
+    font-size: 0.95rem;
+    margin-bottom: 0.2rem;
+  }
+
+  .symptom-hint {
+    font-size: 0.75rem;
+    color: #9bb7c9;
+  }
+
+  /* Guides Section */
+  .guides-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 1.2rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .guides-header h2 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #1e4a6b;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .guides-count {
+    font-size: 0.75rem;
+    color: #9bb7c9;
+    font-weight: normal;
+  }
+
+  .guides-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1.2rem;
+  }
+
+  .guide-card {
+    background: white;
+    border-radius: 20px;
+    padding: 1.2rem;
+    text-decoration: none;
+    transition: all 0.2s;
+    border: 1px solid #eef2f8;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  }
+
+  .guide-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+    border-color: #e0e8f0;
+  }
+
+  .guide-icon {
+    font-size: 2rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .guide-title {
+    font-weight: 800;
+    font-size: 1rem;
+    color: #1e4a6b;
+    margin-bottom: 0.5rem;
+    line-height: 1.3;
+  }
+
+  .guide-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.8rem;
+    padding-top: 0.8rem;
+    border-top: 1px solid #f0f4f8;
+  }
+
+  .guide-time {
+    font-size: 0.7rem;
+    color: #9bb7c9;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+
+  .guide-difficulty {
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.2rem 0.6rem;
+    border-radius: 20px;
+  }
+
+  .difficulty-easy {
+    background: #e6f4ea;
+    color: #2b6e3c;
+  }
+
+  .difficulty-medium {
+    background: #fff3e0;
+    color: #e05c00;
+  }
+
+  .difficulty-hard {
+    background: #fee8e8;
+    color: #c0392b;
+  }
+
+  @media (max-width: 680px) {
+    .repair-container {
+      padding: 1rem;
+    }
+    .symptom-card {
+      padding: 1.2rem;
+    }
+    .symptom-grid {
+      grid-template-columns: 1fr;
+    }
+    .guides-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<div class="repair-container">
+  <div class="repair-header">
+    <h1>Bike Repair Guide</h1>
+    <div class="repair-subtitle">
+      DIY fixes, maintenance tips, and troubleshooting guides
+    </div>
+  </div>
+
+  <!-- Symptom Checker -->
+  <div class="symptom-card">
+    <div class="symptom-title"><span>🔍</span> Symptom Checker</div>
+    <div class="symptom-desc">
+      Not sure what's wrong? Select what you're experiencing and we'll show
+      possible causes and fixes.
+    </div>
+
+    {% if not bike_id and bikes %}
+    <div class="bike-selector">
+      <label>🏍️ Select your bike</label>
+      <select onchange="window.location.href = '/repair/' + this.value">
+        <option value="">-- Choose a bike --</option>
+        {% for bike in bikes %}
+        <option value="{{ bike.id }}">{{ bike.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    {% endif %}
+
+    <div class="symptom-grid">
+      {% for key, symptom in symptoms.items() %}
+      <a
+        href="/repair/symptom/{{ key }}/{{ bike_id or (bikes[0].id if bikes else 0) }}"
+        class="symptom-item"
+      >
+        <div class="symptom-icon">
+          {% if "noise" in key %}🔊 {% elif "start" in key %}🔑 {% elif "brake"
+          in key %}🛑 {% elif "vibrat" in key %}📳 {% elif "leak" in key %}💧 {%
+          elif "light" in key %}💡 {% else %}⚠️ {% endif %}
+        </div>
+        <div class="symptom-content">
+          <div class="symptom-label">{{ symptom["label"] }}</div>
+          <div class="symptom-hint">Click to diagnose →</div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Repair Guides -->
+  <div class="guides-header">
+    <h2>
+      📖 Step-by-Step Guides
+      <span class="guides-count">({{ guides|length }} available)</span>
+    </h2>
+  </div>
+
+  <div class="guides-grid">
+    {% for key, guide in guides.items() %}
+    <a href="/repair/guide/{{ key }}" class="guide-card">
+      <div class="guide-icon">
+        {% if "oil" in key|lower %}🛢️ {% elif "chain" in key|lower %}⛓️ {% elif
+        "brake" in key|lower %}🛑 {% elif "tire" in key|lower %}🛞 {% elif
+        "battery" in key|lower %}🔋 {% elif "filter" in key|lower %}🌬️ {% else
+        %}🔧 {% endif %}
+      </div>
+      <div class="guide-title">{{ guide["title"] }}</div>
+      <div class="guide-meta">
+        <div class="guide-time">⏱️ {{ guide["time"] }}</div>
+        <div
+          class="guide-difficulty {% if guide['difficulty'] == 'Easy' %}difficulty-easy {% elif guide['difficulty'] == 'Medium' %}difficulty-medium {% else %}difficulty-hard{% endif %}"
+        >
+          {{ guide["difficulty"] }}
+        </div>
+      </div>
     </a>
     {% endfor %}
   </div>
-</div>
-
-<!-- Repair Guides -->
-<h2 style="font-size: 18px; margin-bottom: 12px">Step by step guides</h2>
-<div
-  style="
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 12px;
-  "
->
-  {% for key, guide in guides.items() %}
-  <a
-    href="/repair/guide/{{ key }}"
-    style="
-      display: block;
-      background: white;
-      border-radius: 10px;
-      padding: 16px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-      text-decoration: none;
-      color: #333;
-    "
-  >
-    <div style="font-weight: 700; font-size: 15px; margin-bottom: 6px">
-      {{ guide["title"] }}
-    </div>
-    <div style="font-size: 12px; color: #888; margin-bottom: 4px">
-      {{ guide["time"] }}
-    </div>
-    <div
-      style="font-size: 12px; font-weight: 600;
-      color: {% if guide['difficulty'] == 'Easy' %}#1d9e75{% else %}#e05c00{% endif %};"
-    >
-      {{ guide["difficulty"] }}
-    </div>
-  </a>
-  {% endfor %}
 </div>
 
 {% endblock %}
