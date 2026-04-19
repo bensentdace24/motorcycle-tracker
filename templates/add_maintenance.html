@@ -1,40 +1,232 @@
 <!doctype html>
-<html>
+<html lang="en">
   <head>
-    <title>Add Maintenance Entry</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Add Maintenance Entry | Bike Service Tracker</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    />
+    <style>
+      body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+      .maintenance-card {
+        border-radius: 20px;
+        border: none;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+      }
+      .card-header-custom {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 25px 30px;
+        border-bottom: none;
+      }
+      .card-header-custom h2 {
+        margin: 0;
+        font-size: 1.8rem;
+        font-weight: 600;
+      }
+      .card-header-custom p {
+        margin: 8px 0 0;
+        opacity: 0.9;
+        font-size: 0.95rem;
+      }
+      .form-group {
+        margin-bottom: 1.5rem;
+      }
+      .form-group label {
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 8px;
+        display: block;
+        font-size: 0.9rem;
+      }
+      .form-group label i {
+        margin-right: 8px;
+        color: #667eea;
+      }
+      .form-control,
+      .form-select {
+        border-radius: 12px;
+        border: 2px solid #e2e8f0;
+        padding: 12px 15px;
+        transition: all 0.3s ease;
+      }
+      .form-control:focus,
+      .form-select:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        outline: none;
+      }
+      .btn-save {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        padding: 12px 30px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 1rem;
+        width: 100%;
+        transition: transform 0.2s ease;
+      }
+      .btn-save:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+      }
+      .btn-back {
+        background: white;
+        border: 2px solid #e2e8f0;
+        padding: 10px 25px;
+        border-radius: 12px;
+        color: #4a5568;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+      }
+      .btn-back:hover {
+        border-color: #667eea;
+        color: #667eea;
+        background: #f7fafc;
+      }
+      .form-text {
+        font-size: 0.75rem;
+        color: #718096;
+        margin-top: 5px;
+      }
+      .required-star {
+        color: #e53e3e;
+        margin-left: 4px;
+      }
+      .icon-input {
+        position: relative;
+      }
+      .icon-input i {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #a0aec0;
+      }
+      .icon-input input,
+      .icon-input select {
+        padding-left: 40px;
+      }
+    </style>
   </head>
   <body>
     {% extends "base.html" %} {% block title %}Add Maintenance Entry{% endblock
     %} {% block content %}
-    <h1>Add Maintenance Entry</h1>
+    <div class="container py-5">
+      <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+          <div class="card maintenance-card">
+            <div class="card-header-custom">
+              <div class="d-flex align-items-center gap-3">
+                <div class="rounded-circle bg-white bg-opacity-20 p-2">
+                  <i class="bi bi-wrench fs-3"></i>
+                </div>
+                <div>
+                  <h2 class="mb-0">Add Maintenance</h2>
+                  <p class="mb-0">Record service history for your bike</p>
+                </div>
+              </div>
+            </div>
 
-    <div class="card" style="max-width: 480px">
-      <form method="POST">
-        <div class="form-group">
-          <label>Date</label>
-          <input type="date" name="date" required />
+            <div class="card-body p-4">
+              <form method="POST">
+                <!-- Date Field -->
+                <div class="form-group">
+                  <label>
+                    <i class="bi bi-calendar3"></i> Date
+                    <span class="required-star">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    name="date"
+                    class="form-control"
+                    required
+                  />
+                  <div class="form-text">
+                    When was the maintenance performed?
+                  </div>
+                </div>
+
+                <!-- Type Field -->
+                <div class="form-group">
+                  <label>
+                    <i class="bi bi-tools"></i> Service Type
+                    <span class="required-star">*</span>
+                  </label>
+                  <select name="type" class="form-select" required>
+                    <option value="">-- Select Service Type --</option>
+                    <option value="Oil Change">🔧 Oil Change</option>
+                    <option value="Chain Adjustment">
+                      ⚙️ Chain Adjustment
+                    </option>
+                    <option value="Tire Replacement">
+                      🛞 Tire Replacement
+                    </option>
+                    <option value="Brake Check">🛑 Brake Check</option>
+                    <option value="Engine Tune-up">🚀 Engine Tune-up</option>
+                    <option value="Battery Replacement">
+                      🔋 Battery Replacement
+                    </option>
+                    <option value="Spark Plug Replacement">
+                      ⚡ Spark Plug Replacement
+                    </option>
+                    <option value="Air Filter Cleaning">
+                      🌬️ Air Filter Cleaning
+                    </option>
+                    <option value="Other">📝 Other</option>
+                  </select>
+                  <div class="form-text">
+                    Select the type of service performed
+                  </div>
+                </div>
+
+                <!-- Notes Field -->
+                <div class="form-group">
+                  <label> <i class="bi bi-pencil-square"></i> Notes </label>
+                  <textarea
+                    name="notes"
+                    class="form-control"
+                    rows="4"
+                    placeholder="e.g., Used synthetic oil, Replaced with OEM parts, etc..."
+                  ></textarea>
+                  <div class="form-text">
+                    Any additional details about the service (optional)
+                  </div>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="btn btn-save text-white mt-3">
+                  <i class="bi bi-check-circle me-2"></i>Save Maintenance Record
+                </button>
+              </form>
+            </div>
+
+            <div class="card-footer bg-white border-0 pb-4 text-center">
+              <a href="/bikes/{{ bike_id }}/maintenance" class="btn-back">
+                <i class="bi bi-arrow-left"></i> Back to Maintenance History
+              </a>
+            </div>
+          </div>
         </div>
-        <div class="form-group">
-          <label>Type</label>
-          <select name="type" required>
-            <option value="">-- Select --</option>
-            <option value="Oil Change">Oil Change</option>
-            <option value="Chain Adjustment">Chain Adjustment</option>
-            <option value="Tire Replacement">Tire Replacement</option>
-            <option value="Brake Check">Brake Check</option>
-            <option value="Other">Other</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Notes (optional)</label>
-          <input type="text" name="notes" placeholder="Any details..." />
-        </div>
-        <button type="submit">Save Entry</button>
-      </form>
+      </div>
     </div>
-
-    <br />
-    <a href="/bikes/{{ bike_id }}/maintenance">← Back</a>
     {% endblock %}
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
   </body>
 </html>
